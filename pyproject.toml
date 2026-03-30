@@ -1,0 +1,11 @@
+[project]
+name = "urban-data-platform"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dbt-bigquery>=1.11.1",
+    "dbt-duckdb>=1.10.1",
+    "pandas>=3.0.1",
+]

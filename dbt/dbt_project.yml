@@ -1,0 +1,16 @@
+name: urban_data_platform
+profile: urban_data_platform
+
+model-paths: ["models"]
+
+models:
+  urban_data_platform:
+    staging:
+      +schema: staging
+      +materialized: view
+    core:
+      +schema: core
+      +materialized: table
+    marts:
+      +schema: marts   
+      +materialized: table
