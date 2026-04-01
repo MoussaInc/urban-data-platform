@@ -1,0 +1,58 @@
+version: 2
+
+models:
+
+  - name: building
+    description: Table des bâtiments
+    columns:
+      - name: osm_id
+        tests:
+          - not_null
+          - unique
+
+  - name: amenities
+    description: Table des services
+    columns:
+      - name: osm_id
+        tests:
+          - not_null
+
+  - name: roads
+    description: Table du réseau routier
+    columns:
+      - name: osm_id
+        tests:
+          - not_null
+
+  - name: amenities_by_city
+    description: KPI nombre de services par ville
+    columns:
+      - name: city
+        tests:
+          - not_null
+
+      - name: num_amenities
+        tests:
+          - not_null
+
+  - name: building_by_cities
+    description: KPI nombre de bâtiments par ville
+    columns:
+      - name: city
+        tests:
+          - not_null
+
+      - name: num_buildings
+        tests:
+          - not_null
+
+  - name: urban_density_score
+    description: Score d’urbanisation des villes
+    columns:
+      - name: city
+        tests:
+          - not_null
+
+      - name: urban_density_score
+        tests:
+          - not_null
