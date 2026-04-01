@@ -1,4 +1,4 @@
-# 🌍 Urban Data Platform - OSM Analytics
+# Urban Data Platform - OSM Analytics
 
 ## Description
 
@@ -29,11 +29,11 @@ Analytics / Dashboard
 * **BigQuery** → Data warehouse
 * **DBT** → Transformation des données
 * **SQL** → Modélisation
-* **Python** orchestration / scripts
+* **Python** → Scripts / orchestration
 
 ---
 
-## 📂 Structure du projet
+## Structure du projet
 
 ```
 dbt/
@@ -43,16 +43,19 @@ dbt/
 │   ├── marts/
 │   │   ├── building.sql
 │   │   ├── amenities.sql
-│   │   └── roads.sql
+│   │   ├── roads.sql
+│   │   ├── amenities_by_city.sql
+│   │   ├── building_by_cities.sql
+│   │   └── urban_density_score.sql
 ```
 
 ---
 
-## 📊 Modèles principaux
+## Modèles principaux
 
 ### Staging
 
-* `stg_osm_features` : nettoyage et transformation des données OSM
+* `stg_osm_features` : nettoyage et transformation des données OSM (flatten des tags)
 
 ### Marts
 
@@ -62,23 +65,67 @@ dbt/
 
 ---
 
-## 📈 Cas d’usage
+## KPI & Analyses
 
-* Analyse urbaine
-* Cartographie des infrastructures
-* Études de densité (bâtiments, routes, services)
+* **Buildings by City** → densité de bâtiments
+* **Amenities by City** → accessibilité aux services
+* **Urban Density Score** → score d’urbanisation basé sur :
+
+  * bâtiments
+  * services
+  * routes
 
 ---
 
-## 📌 Améliorations futures
+## Insights
 
-* Ajout de KPI (densité urbaine, accessibilité)
+* Les grandes villes concentrent-elles la majorité des services (amenities) ?
+* Existe-t-il une forte corrélation entre densité de bâtiments et réseau routier ?
+* Est-il possible d’identifier les zones urbaines majeures (score d’urbanisation) ?
+
+---
+
+## 🚀 Exécution
+
+### Lancer les modèles DBT
+
+```
+dbt run
+```
+
+### Lancer les tests
+
+```
+dbt test
+```
+
+---
+
+## Cas d’usage
+
+* Analyse urbaine
+* Cartographie des infrastructures
+* Études de densité et attractivité des villes
+
+---
+
+## Améliorations futures
+
 * Dashboard (Looker Studio / Streamlit)
+* Ajout de KPI avancés (densité par surface, scoring amélioré)
 * Orchestration (Kestra / Airflow)
 
 ---
 
+## 📊 Dashboard (Streamlit)
+
+Lancer le dashboard en local :
+
+```bash
+streamlit run dashboard/app.py
+
+
 ## 👤 Auteur
 
-Moussa MBALLO
+**Moussa MBALLO**
 Ingénieur Génie Civil & Data Engineer
