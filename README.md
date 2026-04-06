@@ -36,17 +36,38 @@ Analytics / Dashboard
 ## Structure du projet
 
 ```
-dbt/
-├── models/
-│   ├── staging/
-│   │   └── stg_osm_features.sql
-│   ├── marts/
-│   │   ├── building.sql
-│   │   ├── amenities.sql
-│   │   ├── roads.sql
-│   │   ├── amenities_by_city.sql
-│   │   ├── building_by_cities.sql
-│   │   └── urban_density_score.sql
+.
+├── dashboard
+│   └── app.py
+├── dbt
+│   ├── dbt_packages
+│   ├── dbt_project.yml
+│   ├── logs
+│   │   └── dbt.log
+│   ├── models
+│   │   ├── core
+│   │   ├── marts
+│   │   │   ├── amenities_by_city.sql
+│   │   │   ├── amenities.sql
+│   │   │   ├── building_by_cities.sql
+│   │   │   ├── building.sql
+│   │   │   ├── roads.sql
+│   │   │   ├── schema.yml
+│   │   │   └── urban_density_score.sql
+│   │   └── staging
+│   │       └── stg_osm_features.sql
+│   ├── target
+│   │   ├── ....
+│   │   ├── ....
+│   └── tests
+├── docs
+├── logs
+│   └── dbt.log
+├── orchestration
+├── pyproject.toml
+├── README.md
+├── sql
+└── uv.lock
 ```
 
 ---
@@ -57,19 +78,12 @@ dbt/
 
 * `stg_osm_features` : nettoyage et transformation des données OSM (flatten des tags)
 
-### Marts
-
-* `building` : bâtiments extraits
-* `amenities` : services (écoles, hôpitaux, etc.)
-* `roads` : réseau routier
-
----
 
 ## KPI & Analyses
 
-* **Buildings by City** → densité de bâtiments
-* **Amenities by City** → accessibilité aux services
-* **Urban Density Score** → score d’urbanisation basé sur :
+* **Buildings by City :** densité de bâtiments
+* **Amenities by City :** accessibilité aux services
+* **Urban Density Score :** score d’urbanisation basé sur :
 
   * bâtiments
   * services
@@ -85,7 +99,7 @@ dbt/
 
 ---
 
-## 🚀 Exécution
+## Exécution
 
 ### Lancer les modèles DBT
 
@@ -101,31 +115,21 @@ dbt test
 
 ---
 
-## Cas d’usage
-
-* Analyse urbaine
-* Cartographie des infrastructures
-* Études de densité et attractivité des villes
-
----
-
 ## Améliorations futures
 
-* Dashboard (Looker Studio / Streamlit)
-* Ajout de KPI avancés (densité par surface, scoring amélioré)
 * Orchestration (Kestra / Airflow)
 
 ---
 
-## 📊 Dashboard (Streamlit)
+## Dashboard (Streamlit)
 
 Lancer le dashboard en local :
 
 ```bash
 streamlit run dashboard/app.py
+```
 
-
-## 👤 Auteur
+## Auteur
 
 **Moussa MBALLO**
 Ingénieur Génie Civil & Data Engineer
