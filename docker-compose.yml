@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  airflow-postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./airflow-data/postgres:/var/lib/postgresql/data
+
+  airflow-webserver:
+    image: apache/airflow:2.7.2
+    depends_on:
+      - airflow-postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    volumes:
+      - ./dag:/opt/airflow/dags
+      - ./dbt:/opt/airflow/dbt
+    ports:
+      - "8080:8080"
+    command: webserver
+    restart: always
+
+  airflow-scheduler:
+    image: apache/airflow:2.7.2
+    depends_on:
+      - airflow-webserver
+      - airflow-postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+    volumes:
+      - ./dag:/opt/airflow/dags
+      - ./dbt:/opt/airflow/dbt
+    command: scheduler
+    restart: always
+
+  dbt:
+    image: xemuliam/dbt:bigquery-alpine
+    volumes:
+      - ./dbt:/usr/app/dbt
+    working_dir: /usr/app/dbt
+    entrypoint: tail -f /dev/null
+
+  streamlit:
+    image: python:3.12
+    volumes:
+      - ./dashboard:/app/dashboard
+    working_dir: /app/dashboard
+    ports:
+      - "8501:8501"
+    command: bash -c "pip install streamlit pandas plotly && streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
