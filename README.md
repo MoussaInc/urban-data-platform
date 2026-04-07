@@ -26,108 +26,62 @@ Analytics / Dashboard
 
 ## Stack technique
 
-* **BigQuery** → Data warehouse
-* **DBT** → Transformation des données
-* **SQL** → Modélisation
-* **Python** → Scripts / orchestration
-
----
-
-## Structure du projet
-
-```
-.
-├── dashboard
-│   └── app.py
-├── dbt
-│   ├── dbt_packages
-│   ├── dbt_project.yml
-│   ├── logs
-│   │   └── dbt.log
-│   ├── models
-│   │   ├── core
-│   │   ├── marts
-│   │   │   ├── amenities_by_city.sql
-│   │   │   ├── amenities.sql
-│   │   │   ├── building_by_cities.sql
-│   │   │   ├── building.sql
-│   │   │   ├── roads.sql
-│   │   │   ├── schema.yml
-│   │   │   └── urban_density_score.sql
-│   │   └── staging
-│   │       └── stg_osm_features.sql
-│   ├── target
-│   │   ├── ....
-│   │   ├── ....
-│   └── tests
-├── docs
-├── logs
-│   └── dbt.log
-├── orchestration
-├── pyproject.toml
-├── README.md
-├── sql
-└── uv.lock
-```
+- **BigQuery** → Data Warehouse  
+- **DBT (Data Build Tool)** → Transformation & modélisation  
+- **Airflow** → Orchestration (en cours)  
+- **Python** → Scripts & intégration  
+- **Streamlit** → Dashboard interactif
 
 ---
 
 ## Modèles principaux
 
 ### Staging
+- `stg_osm_features` : nettoyage des données OSM et transformation des tags
 
-* `stg_osm_features` : nettoyage et transformation des données OSM (flatten des tags)
-
-
-## KPI & Analyses
-
-* **Buildings by City :** densité de bâtiments
-* **Amenities by City :** accessibilité aux services
-* **Urban Density Score :** score d’urbanisation basé sur :
-
-  * bâtiments
-  * services
-  * routes
+### Marts
+- `buildings` : données sur les bâtiments  
+- `roads` : réseau routier  
+- `amenities` : services urbains  
+- `urban_density_score` : score d’urbanisation  
 
 ---
 
-## Insights
+## KPI & Analyses
 
-* Les grandes villes concentrent-elles la majorité des services (amenities) ?
-* Existe-t-il une forte corrélation entre densité de bâtiments et réseau routier ?
-* Est-il possible d’identifier les zones urbaines majeures (score d’urbanisation) ?
+- **Buildings by City** → densité urbaine  
+- **Amenities by City** → accessibilité aux services  
+- **Urban Density Score** → niveau d’urbanisation global  
+
+---
+
+## Cas d’usage
+
+- Identifier les zones urbaines denses  
+- Analyser la répartition des services  
+- Étudier la corrélation entre infrastructures et urbanisation  
 
 ---
 
 ## Exécution
 
-### Lancer les modèles DBT
-
-```
+### DBT
+```bash
 dbt run
-```
-
-### Lancer les tests
-
-```
 dbt test
 ```
 
----
-
-## Améliorations futures
-
-* Orchestration (Kestra / Airflow)
-
----
-
-## Dashboard (Streamlit)
-
-Lancer le dashboard en local :
-
+### Dashboard
 ```bash
 streamlit run dashboard/app.py
 ```
+
+### Docker
+```bash
+docker compose up -d
+```
+
+---
 
 ## Auteur
 
