@@ -1,5 +1,48 @@
-target/
-dbt_packages/
-logs/
-.env
+# ======================
+# Python
+# ======================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 .venv/
+.env
+
+# ======================
+# dbt
+# ======================
+dbt/target/
+dbt/logs/
+dbt_packages/
+
+# ======================
+# Airflow
+# ======================
+airflow-data/
+logs/
+*.log
+
+# ======================
+# Docker
+# ======================
+*.pid
+docker-compose.override.yml
+
+# ======================
+# Data files (important)
+# ======================
+data/
+*.csv
+*.parquet
+
+# ======================
+# OS / Editor
+# ======================
+.DS_Store
+.vscode/
+.idea/
+
+# ======================
+# Misc
+# ======================
+.env.*
