@@ -1,4 +1,4 @@
-name: CI — urban-data-platform
+name: CI urban-data-platform
 
 on:
   push:
@@ -16,70 +16,74 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+
       - name: Install dependencies
         run: uv sync
+
       - name: Run pytest
         run: uv run pytest dag/ -v --tb=short
 
   test-dbt:
-    name: dbt tests (BigQuery)
+    name: dbt tests BigQuery
     runs-on: ubuntu-latest
     needs: test-dag
     env:
       DBT_PROJECT_DIR: ${{ github.workspace }}/dbt
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install uv
         uses: astral-sh/setup-uv@v4
+
       - name: Install dependencies
         run: uv sync
+
       - name: Auth Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
       - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-      - name: Créer profiles.yml
+
+      - name: Creer profiles.yml
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           mkdir -p ~/.dbt
-          cat > ~/.dbt/profiles.yml << 'EOF'
-urban_data_platform:
-  target: ci
-  outputs:
-    ci:
-      type: bigquery
-      method: oauth
-      project: PLACEHOLDER
-      dataset: osm
-      location: US
-      threads: 1
-      priority: interactive
-EOF
-          sed -i "s|PLACEHOLDER|${GCP_PROJECT_ID}|g" ~/.dbt/profiles.yml
+          printf 'urban_data_platform:\n  target: ci\n  outputs:\n    ci:\n      type: bigquery\n      method: oauth\n      project: %s\n      dataset: osm\n      location: US\n      threads: 1\n      priority: interactive\n' "$GCP_PROJECT_ID" > ~/.dbt/profiles.yml
+
       - name: Debug profiles.yml
         run: cat ~/.dbt/profiles.yml
+
       - name: dbt deps
         run: uv run dbt deps --project-dir $DBT_PROJECT_DIR
+
       - name: dbt compile
         run: uv run dbt compile --project-dir $DBT_PROJECT_DIR
+
       - name: dbt run staging
         run: uv run dbt run -m stg_osm_features --project-dir $DBT_PROJECT_DIR
+
       - name: dbt test staging
         run: uv run dbt test -m stg_osm_features --project-dir $DBT_PROJECT_DIR
+
       - name: dbt build pipeline complet
         run: uv run dbt build -m stg_osm_features+ --project-dir $DBT_PROJECT_DIR
