@@ -35,6 +35,10 @@ jobs:
     name: dbt tests BigQuery
     runs-on: ubuntu-latest
     needs: test-dag
+    permissions:
+      contents: read
+      id-token: write
+
     env:
       DBT_PROJECT_DIR: ${{ github.workspace }}/dbt
 
@@ -56,7 +60,8 @@ jobs:
       - name: Auth Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SA }}
 
       - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
