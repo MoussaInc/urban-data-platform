@@ -5,10 +5,20 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "apache-airflow==2.7.2",
+    "apache-airflow==2.10.0",
     "dbt-bigquery>=1.11.1",
     "dbt-duckdb>=1.10.1",
     "google-cloud-bigquery>=3.40.1",
     "pandas>=3.0.1",
+    "pytest>=9.0.3",
     "streamlit>=1.56.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["dag"]
+
+[dependency-groups]
+dev = [
+    "apache-airflow>=2.10.0",
 ]
