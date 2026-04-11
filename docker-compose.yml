@@ -1,5 +1,21 @@
 version: "3.8"
 
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.7.2
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+    AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags
+    GOOGLE_APPLICATION_CREDENTIALS: /opt/airflow/gcp/creds.json
+  volumes:
+    - ./dag:/opt/airflow/dags
+    - ./dbt:/opt/airflow/dbt
+    - ${HOME}/.config/gcloud/creds.json:/opt/airflow/gcp/creds.json:ro
+  depends_on:
+    airflow-postgres:
+      condition: service_healthy
+
 services:
   airflow-postgres:
     image: postgres:15
@@ -11,34 +27,45 @@ services:
       - "5432:5432"
     volumes:
       - ./airflow-data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+
+  airflow-init:
+    <<: *airflow-common
+    command: >
+      bash -c "
+        airflow db init &&
+        airflow users create
+          --username admin
+          --password admin
+          --firstname Admin
+          --lastname User
+          --role Admin
+          --email admin@example.com
+      "
+    restart: on-failure
 
   airflow-webserver:
-    image: apache/airflow:2.7.2
+    <<: *airflow-common
     depends_on:
-      - airflow-postgres
-    environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
-      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
-    volumes:
-      - ./dag:/opt/airflow/dags
-      - ./dbt:/opt/airflow/dbt
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
     ports:
       - "8080:8080"
     command: webserver
     restart: always
 
   airflow-scheduler:
-    image: apache/airflow:2.7.2
+    <<: *airflow-common
     depends_on:
-      - airflow-webserver
-      - airflow-postgres
-    environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
-    volumes:
-      - ./dag:/opt/airflow/dags
-      - ./dbt:/opt/airflow/dbt
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_completed_successfully
     command: scheduler
     restart: always
 
@@ -46,6 +73,9 @@ services:
     image: xemuliam/dbt:bigquery-alpine
     volumes:
       - ./dbt:/usr/app/dbt
+      - ${HOME}/.config/gcloud/creds.json:/root/.config/gcloud/application_default_credentials.json:ro
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/application_default_credentials.json
     working_dir: /usr/app/dbt
     entrypoint: tail -f /dev/null
 
@@ -56,4 +86,6 @@ services:
     working_dir: /app/dashboard
     ports:
       - "8501:8501"
-    command: bash -c "pip install streamlit pandas plotly && streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
+    command: >
+      bash -c "pip install streamlit pandas plotly google-cloud-bigquery &&
+               streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
