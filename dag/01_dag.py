@@ -2,71 +2,76 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.bash import BashOperator
 
-# Paramètres du DAG
+# Chemin DBT dans le conteneur Airflow
+DBT_PATH = "/opt/airflow/dbt"
+
 default_args = {
-    'owner': 'mballo',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
+    "owner": "mballo",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "retries": 1,
 }
 
-dag = DAG(
-    'urban_data_platform_dag',
+with DAG(
+    dag_id="urban_data_platform_dag",
     default_args=default_args,
-    description='Orchestration DBT Urban Data Platform',
-    schedule_interval='@daily',  # Exécution quotidienne
+    description="Orchestration DBT Urban Data Platform",
+    schedule="@daily",
     start_date=datetime(2026, 4, 6),
     catchup=False,
-)
+    tags=["dbt", "urban", "osm"],
+) as dag:
 
-# Étape 1 : Staging
-stg_osm_features = BashOperator(
-    task_id='dbt_stg_osm_features',
-    bash_command='cd /data/projects/data-engineering/urban-data-platform/dbt && dbt run -m stg_osm_features',
-    dag=dag,
-)
+    # 🔹 Staging
+    stg_osm_features = BashOperator(
+        task_id="stg_osm_features",
+        bash_command=f"cd {DBT_PATH} && dbt run -m stg_osm_features",
+    )
 
-# Étape 2 : Marts
-building = BashOperator(
-    task_id='dbt_building',
-    bash_command='cd /data/projects/data-engineering/urban-data-platform/dbt && dbt run -m building',
-    dag=dag,
-)
+    # 🔹 Marts
+    building = BashOperator(
+        task_id="building",
+        bash_command=f"cd {DBT_PATH} && dbt run -m building",
+    )
 
-amenities = BashOperator(
-    task_id='dbt_amenities',
-    bash_command='cd /data/projects/data-engineering/urban-data-platform/dbt && dbt run -m amenities',
-    dag=dag,
-)
+    amenities = BashOperator(
+        task_id="amenities",
+        bash_command=f"cd {DBT_PATH} && dbt run -m amenities",
+    )
 
-roads = BashOperator(
-    task_id='dbt_roads',
-    bash_command='cd /data/projects/data-engineering/urban-data-platform/dbt && dbt run -m roads',
-    dag=dag,
-)
+    roads = BashOperator(
+        task_id="roads",
+        bash_command=f"cd {DBT_PATH} && dbt run -m roads",
+    )
 
-# Étape 3 : KPI et agrégations
-building_by_cities = BashOperator(
-    task_id='dbt_building_by_cities',
-    bash_command='cd /data/projects/data-engineering/urban-data-platform/dbt && dbt run -m building_by_cities',
-    dag=dag,
-)
+    # 🔹 Aggregations
+    building_by_cities = BashOperator(
+        task_id="building_by_cities",
+        bash_command=f"cd {DBT_PATH} && dbt run -m building_by_cities",
+    )
 
-amenities_by_city = BashOperator(
-    task_id='dbt_amenities_by_city',
-    bash_command='cd /data/projects/data-engineering/urban-data-platform/dbt && dbt run -m amenities_by_city',
-    dag=dag,
-)
+    amenities_by_city = BashOperator(
+        task_id="amenities_by_city",
+        bash_command=f"cd {DBT_PATH} && dbt run -m amenities_by_city",
+    )
 
-urban_density_score = BashOperator(
-    task_id='dbt_urban_density_score',
-    bash_command='cd /data/projects/data-engineering/urban-data-platform/dbt && dbt run -m urban_density_score',
-    dag=dag,
-)
+    urban_density_score = BashOperator(
+        task_id="urban_density_score",
+        bash_command=f"cd {DBT_PATH} && dbt run -m urban_density_score",
+    )
 
-# Définition de l’ordre d’exécution
-stg_osm_features >> [building, amenities, roads]
-building >> building_by_cities >> urban_density_score
-amenities >> amenities_by_city
-roads >> urban_density_score
+    # 🔹 Tests (très important en prod)
+    dbt_tests = BashOperator(
+        task_id="dbt_tests",
+        bash_command=f"cd {DBT_PATH} && dbt test",
+    )
+
+    # 🔗 Dépendances
+    stg_osm_features >> [building, amenities, roads]
+
+    building >> building_by_cities >> urban_density_score
+    amenities >> amenities_by_city >> urban_density_score
+    roads >> urban_density_score
+
+    # Tests en fin de pipeline
+    urban_density_score >> dbt_tests
