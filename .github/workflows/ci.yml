@@ -1,5 +1,4 @@
 name: CI — urban-data-platform
-
 on:
   push:
     branches: [main, develop]
@@ -38,7 +37,7 @@ jobs:
     needs: test-dag
 
     env:
-      DBT_PROJECT_DIR: ${{ github.workspace }}/dbt
+     #DBT_PROJECT_DIR: ${{ github.workspace }}/dbt
 
     steps:
       - name: Checkout
